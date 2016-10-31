@@ -14,12 +14,13 @@ import random
 import atexit
 import datetime
 from neopixel import *
+import urllib2
 
 #Start up random seed
 random.seed()
 
 # LED strip configuration:
-LED_COUNT      = 50      # Number of LED pixels.
+LED_COUNT      = 100      # Number of LED pixels.
 LED_PIN        = 18      # GPIO pin connected to the pixels (must support PWM!).
 LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
 LED_DMA        = 5       # DMA channel to use for generating signal (try 5)
@@ -51,7 +52,9 @@ GREENMASK = 0b000000001111111100000000
 BLUEMASK = 0b000000000000000011111111
 
 # Other vars
-ALPHABET = '*******abcdefghijklm********zyxwvutsrqpon*********'  #alphabet that will be used
+#ALPHABET = '*******abcdefghijklm********zyxwvutsrqpon*********'  #alphabet that will be used
+#ALPHABET = '***h*gf*edcba**ij*k*lm*n**o***ut*s*r*q*p*v*w*x**yz**************************************************'  #alphabet that will be used
+ALPHABET = '******s***t**u***v**w***x**y**z**********r**q****po**n**m**l**k**j******a***b**c*d****e**f**g**h**i*'  #alphabet that will be used
 LIGHTSHIFT = 0  #shift the lights down the strand to the other end 
 FLICKERLOOP = 3  #number of loops to flicker
 
@@ -59,6 +62,7 @@ WORDFILE = 'tweets.txt'
 ALTWORDFILE = 'words.txt'
 PURGEWORDS = 1
 
+iftttMakerURL = 'https://maker.ifttt.com/trigger/new_message/with/key/KEYNAME'
 lastWordTime = datetime.datetime.now() - datetime.timedelta(days=1)
 
 def initLights(strip):
@@ -212,7 +216,7 @@ def runBlink(strip):
 
     
 def getWord(counter):
-    global lastWordTime
+    global lastWordTime, iftttMakerURL
     
     f = open(WORDFILE,'r');
     lines = f.readlines()
@@ -230,8 +234,19 @@ def getWord(counter):
         
         lastWordTime = datetime.datetime.now()
         
-        return lines[counter % listCount]
-    elif lastWordTime < (datetime.datetime.now() - datetime.timedelta(minutes=5)):
+        #New tweet, so let's play some music
+        #song = 'Stranger Things'
+        song = 'The Start'
+        #song = 'Should I Stay or Should I Go'
+        #urllib2.urlopen(iftttMakerURL + '?value1=' + urllib2.quote(song)).read()
+        
+        urllib2.urlopen('http://192.168.1.53:8000/htbin/playStrangerThings.py').read()
+        
+        #Give it a few seconds for the song to cue up
+        time.sleep(15)
+        
+        return lines[counter % listCount].lower()
+    elif lastWordTime < (datetime.datetime.now() - datetime.timedelta(minutes=1)):
         # No tweets, so grab from the static list
         f = open(ALTWORDFILE,'r');
         lines = f.readlines()
@@ -241,7 +256,7 @@ def getWord(counter):
         if listCount > 0:
             lastWordTime = datetime.datetime.now()
             
-            return lines[counter % listCount]
+            return lines[counter % listCount].lower()
     
     return ""
     
@@ -318,7 +333,7 @@ if __name__ == '__main__':
                 time.sleep(random.randint(10,80)/1000.0)
 
             print('Sleep')
-            time.sleep(random.randint(15,60))
+            time.sleep(5)
         
         else:
             print('No words, let\'s sleep')

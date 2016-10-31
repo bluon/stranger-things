@@ -47,10 +47,10 @@ for tweet in reversed(statuses):
         tweetsFile.close()
         
         #Modify the lastest ID
-        #f = open('latestTwitterID.txt', 'w')
-        #f.truncate()
-        #f.write(str(tweet.id))
-        #f.close()
+        f = open('latestTwitterID.txt', 'w')
+        f.truncate()
+        f.write(str(tweet.id))
+        f.close()
     else:
         print ('Old tweet')
         pprint.pprint(tweet)
